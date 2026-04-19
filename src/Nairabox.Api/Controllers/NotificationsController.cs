@@ -133,4 +133,28 @@ public class NotificationsController : ControllerBase
 
         return Ok(ApiResponse<object>.Ok(new { scheduledCount = count }, "Reminders scheduled"));
     }
+
+    /// <summary>Send a test email for preview</summary>
+    [HttpPost("event/{eventId:int}/test-email")]
+    public async Task<IActionResult> SendTestEmail(int eventId, [FromBody] SendBulkEmailRequest request)
+    {
+        var userId = _currentUser.UserId;
+        if (userId == null) return Unauthorized(ApiResponse.Fail("Not authenticated"));
+
+        var user = await _db.Users.FindAsync(userId.Value);
+        if (user == null) return Unauthorized(ApiResponse.Fail("User not found"));
+
+        // Send test email to the organizer's own email
+        await _email.SendBulkEmailAsync(new[] { user.Email }, request.Subject, request.Content);
+        return Ok(ApiResponse.Ok($"Test email sent to {user.Email}"));
+    }
+
+    /// <summary>Get organizer email for an event</summary>
+    [HttpGet("organizer-email/{eventId:int}")]
+    public async Task<IActionResult> GetOrganizerEmail(int eventId)
+    {
+        var email = await _db.OrganizerEmails.FirstOrDefaultAsync(e => e.EventId == eventId);
+        if (email == null) return NotFound(ApiResponse.Fail("No email found for this event"));
+        return Ok(ApiResponse<OrganizerEmail>.Ok(email));
+    }
 }

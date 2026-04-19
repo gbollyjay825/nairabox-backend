@@ -294,6 +294,53 @@ public class BookingsController : ControllerBase
         return File(qrCodeImage, "image/png", $"ticket-{ticket.QrCode}.png");
     }
 
+    /// <summary>Get all bookings for a specific event (organizer)</summary>
+    [HttpGet("by-event/{eventId:int}")]
+    [Authorize]
+    public async Task<IActionResult> GetByEvent(int eventId)
+    {
+        var bookings = await _db.Bookings
+            .Where(b => b.EventId == eventId)
+            .OrderByDescending(b => b.CreatedAt)
+            .ToListAsync();
+        return Ok(ApiResponse<List<Booking>>.Ok(bookings));
+    }
+
+    /// <summary>Get current user's bookings</summary>
+    [HttpGet("my")]
+    [Authorize]
+    public async Task<IActionResult> GetMyBookings()
+    {
+        var userId = _currentUser.UserId;
+        if (userId == null) return Unauthorized(ApiResponse.Fail("Not authenticated"));
+
+        var user = await _db.Users.FindAsync(userId.Value);
+        if (user == null) return Unauthorized(ApiResponse.Fail("User not found"));
+
+        var bookings = await _db.Bookings
+            .Where(b => b.CustomerEmail == user.Email)
+            .Include(b => b.IssuedTickets)
+            .OrderByDescending(b => b.CreatedAt)
+            .ToListAsync();
+        return Ok(ApiResponse<List<Booking>>.Ok(bookings));
+    }
+
+    /// <summary>Cancel a pending booking</summary>
+    [HttpPost("{id:int}/cancel")]
+    [Authorize]
+    public async Task<IActionResult> Cancel(int id)
+    {
+        var booking = await _db.Bookings.FindAsync(id);
+        if (booking == null) return NotFound(ApiResponse.Fail("Booking not found"));
+        if (booking.PaymentStatus != PaymentStatus.Pending)
+            return BadRequest(ApiResponse.Fail("Only pending bookings can be cancelled"));
+
+        booking.PaymentStatus = PaymentStatus.Refunded;
+        booking.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+        return Ok(ApiResponse.Ok("Booking cancelled"));
+    }
+
     private static object MapBooking(Booking b) => new
     {
         b.Id,

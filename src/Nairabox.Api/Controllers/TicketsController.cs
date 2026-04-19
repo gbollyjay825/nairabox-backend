@@ -156,6 +156,17 @@ public class TicketsController : ControllerBase
         return Ok(ApiResponse.Ok("Ticket deleted"));
     }
 
+    /// <summary>Check ticket availability</summary>
+    [HttpGet("{id:int}/availability")]
+    public async Task<IActionResult> CheckAvailability(int id, [FromQuery] int quantity = 1)
+    {
+        var ticket = await _db.Tickets.FindAsync(id);
+        if (ticket == null) return NotFound(ApiResponse.Fail("Ticket not found"));
+
+        var remaining = ticket.Quantity - ticket.QuantitySold;
+        return Ok(ApiResponse<object>.Ok(new { available = remaining >= quantity, remaining }));
+    }
+
     private static T ParseEnum<T>(string? value, T defaultValue) where T : struct, Enum
     {
         if (string.IsNullOrEmpty(value)) return defaultValue;

@@ -118,6 +118,24 @@ public class SalesController : ControllerBase
         return Ok(ApiResponse<PaginatedResult<object>>.Ok(result));
     }
 
+    /// <summary>Get sales trend data for an event</summary>
+    [HttpGet("event/{eventId:int}/trend")]
+    public async Task<IActionResult> GetTrend(int eventId, [FromQuery] string period = "daily", [FromQuery] string? startDate = null, [FromQuery] string? endDate = null)
+    {
+        var bookings = await _db.Bookings
+            .Where(b => b.EventId == eventId && b.PaymentStatus == PaymentStatus.Completed)
+            .OrderBy(b => b.CreatedAt)
+            .ToListAsync();
+
+        var grouped = bookings.GroupBy(b => b.CreatedAt.Date).Select(g => new {
+            date = g.Key.ToString("yyyy-MM-dd"),
+            revenue = g.Sum(b => b.TotalAmount),
+            ticketsSold = g.Sum(b => b.TicketQuantity)
+        }).ToList();
+
+        return Ok(ApiResponse<object>.Ok(grouped));
+    }
+
     [HttpGet("organizer/summary")]
     public async Task<IActionResult> GetOrganizerSummary()
     {

@@ -429,6 +429,38 @@ public class OrganizerEventsController : ControllerBase
         return Ok(ApiResponse.Ok("Event published"));
     }
 
+    /// <summary>Get organizer events filtered by status</summary>
+    [HttpGet("by-status/{status}")]
+    public async Task<IActionResult> GetByStatus(string status)
+    {
+        var userId = _currentUser.UserId;
+        if (userId == null) return Unauthorized(ApiResponse.Fail("Not authenticated"));
+
+        var query = _db.Events.Where(e => e.OrganizerId == userId.Value);
+        if (Enum.TryParse<EventStatus>(status, true, out var parsed))
+            query = query.Where(e => e.Status == parsed);
+
+        var events = await query.OrderByDescending(e => e.CreatedAt).ToListAsync();
+        return Ok(ApiResponse<List<Event>>.Ok(events));
+    }
+
+    /// <summary>Unpublish a published event</summary>
+    [HttpPost("{id:int}/unpublish")]
+    public async Task<IActionResult> Unpublish(int id)
+    {
+        var userId = _currentUser.UserId;
+        if (userId == null) return Unauthorized(ApiResponse.Fail("Not authenticated"));
+
+        var ev = await _db.Events.FirstOrDefaultAsync(e => e.Id == id && e.OrganizerId == userId.Value);
+        if (ev == null) return NotFound(ApiResponse.Fail("Event not found"));
+        if (ev.Status != EventStatus.Published) return BadRequest(ApiResponse.Fail("Event is not published"));
+
+        ev.Status = EventStatus.Draft;
+        ev.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+        return Ok(ApiResponse<Event>.Ok(ev));
+    }
+
     private static string GenerateSlug(string name)
     {
         var slug = name.ToLowerInvariant()

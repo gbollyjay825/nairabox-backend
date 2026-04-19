@@ -128,6 +128,56 @@ public class CheckinController : ControllerBase
             ApiResponse<object>.Ok(new { staff.Id, staff.Name, staff.Email }, "Staff created"));
     }
 
+    /// <summary>Deactivate a staff member</summary>
+    [HttpPut("staff/{id:int}/deactivate")]
+    public async Task<IActionResult> DeactivateStaff(int id)
+    {
+        var staff = await _db.StaffMembers.FindAsync(id);
+        if (staff == null) return NotFound(ApiResponse.Fail("Staff not found"));
+
+        staff.IsActive = false;
+        staff.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+        return Ok(ApiResponse.Ok("Staff deactivated"));
+    }
+
+    /// <summary>Search bookings for check-in</summary>
+    [HttpGet("event/{eventId:int}/search")]
+    public async Task<IActionResult> SearchBooking(int eventId, [FromQuery] string q = "")
+    {
+        var bookings = await _db.Bookings
+            .Where(b => b.EventId == eventId &&
+                (b.BookingId.Contains(q) || b.CustomerEmail.Contains(q) || b.CustomerName.Contains(q)))
+            .Include(b => b.IssuedTickets)
+            .Take(20)
+            .ToListAsync();
+        return Ok(ApiResponse<List<Booking>>.Ok(bookings));
+    }
+
+    /// <summary>Get check-in dashboard data</summary>
+    [HttpGet("event/{eventId:int}/dashboard")]
+    public async Task<IActionResult> GetDashboard(int eventId)
+    {
+        var tickets = await _db.IssuedTickets
+            .Where(t => _db.Bookings.Any(b => b.Id == t.BookingId && b.EventId == eventId))
+            .ToListAsync();
+
+        var stats = new {
+            totalTickets = tickets.Count,
+            checkedIn = tickets.Count(t => t.IsCheckedIn),
+            remaining = tickets.Count(t => !t.IsCheckedIn),
+            checkInRate = tickets.Count > 0 ? (double)tickets.Count(t => t.IsCheckedIn) / tickets.Count * 100 : 0
+        };
+
+        var recentCheckins = tickets.Where(t => t.IsCheckedIn && t.CheckedInAt != null)
+            .OrderByDescending(t => t.CheckedInAt)
+            .Take(10)
+            .Select(t => new { attendeeName = t.AttendeeName, ticketName = "General", checkedInAt = t.CheckedInAt })
+            .ToList();
+
+        return Ok(ApiResponse<object>.Ok(new { stats, recentCheckins }));
+    }
+
     [HttpGet("staff")]
     public async Task<IActionResult> GetStaff()
     {
