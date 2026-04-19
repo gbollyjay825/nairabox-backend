@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{0099C227-CA10-42D6-BA91-5AB8AD1ADFDD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nairabox.Domain", "src\Nairabox.Domain\Nairabox.Domain.csproj", "{E87F7BC1-FB55-42F1-BB0A-1C9A680F7E9F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nairabox.Application", "src\Nairabox.Application\Nairabox.Application.csproj", "{C1DC3058-61EE-4FE1-B570-8F1D5A521759}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nairabox.Infrastructure", "src\Nairabox.Infrastructure\Nairabox.Infrastructure.csproj", "{EFDF2F93-B3F9-43CB-BECA-573DDA17BD11}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nairabox.Api", "src\Nairabox.Api\Nairabox.Api.csproj", "{52EF0A1A-B4E3-4BD6-B6A9-567D0443B540}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{AA955D23-BF42-4A0A-B045-6F27C63148D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nairabox.Api.Tests", "tests\Nairabox.Api.Tests\Nairabox.Api.Tests.csproj", "{5351EC58-EC37-4A11-84FF-992DAF19D98E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E87F7BC1-FB55-42F1-BB0A-1C9A680F7E9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E87F7BC1-FB55-42F1-BB0A-1C9A680F7E9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E87F7BC1-FB55-42F1-BB0A-1C9A680F7E9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E87F7BC1-FB55-42F1-BB0A-1C9A680F7E9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1DC3058-61EE-4FE1-B570-8F1D5A521759}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1DC3058-61EE-4FE1-B570-8F1D5A521759}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1DC3058-61EE-4FE1-B570-8F1D5A521759}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1DC3058-61EE-4FE1-B570-8F1D5A521759}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFDF2F93-B3F9-43CB-BECA-573DDA17BD11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFDF2F93-B3F9-43CB-BECA-573DDA17BD11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFDF2F93-B3F9-43CB-BECA-573DDA17BD11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFDF2F93-B3F9-43CB-BECA-573DDA17BD11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52EF0A1A-B4E3-4BD6-B6A9-567D0443B540}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52EF0A1A-B4E3-4BD6-B6A9-567D0443B540}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52EF0A1A-B4E3-4BD6-B6A9-567D0443B540}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52EF0A1A-B4E3-4BD6-B6A9-567D0443B540}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5351EC58-EC37-4A11-84FF-992DAF19D98E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5351EC58-EC37-4A11-84FF-992DAF19D98E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5351EC58-EC37-4A11-84FF-992DAF19D98E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5351EC58-EC37-4A11-84FF-992DAF19D98E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E87F7BC1-FB55-42F1-BB0A-1C9A680F7E9F} = {0099C227-CA10-42D6-BA91-5AB8AD1ADFDD}
+		{C1DC3058-61EE-4FE1-B570-8F1D5A521759} = {0099C227-CA10-42D6-BA91-5AB8AD1ADFDD}
+		{EFDF2F93-B3F9-43CB-BECA-573DDA17BD11} = {0099C227-CA10-42D6-BA91-5AB8AD1ADFDD}
+		{52EF0A1A-B4E3-4BD6-B6A9-567D0443B540} = {0099C227-CA10-42D6-BA91-5AB8AD1ADFDD}
+		{5351EC58-EC37-4A11-84FF-992DAF19D98E} = {AA955D23-BF42-4A0A-B045-6F27C63148D9}
+	EndGlobalSection
+EndGlobal
