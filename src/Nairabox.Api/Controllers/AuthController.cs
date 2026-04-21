@@ -36,6 +36,7 @@ public class AuthController : ControllerBase
     public record VerifySignupOtpRequest(string Email, string Otp, string Password, string? Name, string? Phone);
     public record PasswordResetOtpRequest(string Email);
     public record VerifyPasswordOtpRequest(string Email, string Otp, string NewPassword);
+    public record ChangePasswordRequest(string CurrentPassword, string NewPassword);
 
     /// <summary>
     /// Authenticates a user with email and password.
@@ -294,6 +295,39 @@ public class AuthController : ControllerBase
         });
 
         return Ok(ApiResponse.Ok("Logged out"));
+    }
+
+    /// <summary>
+    /// Changes the authenticated user's password. Verifies the current password
+    /// before applying the new one.
+    /// </summary>
+    /// <param name="request">Current and new password</param>
+    /// <response code="200">Password updated</response>
+    /// <response code="400">Invalid input or wrong current password</response>
+    /// <response code="401">Not authenticated</response>
+    [Authorize]
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        var userId = _currentUser.UserId;
+        if (userId == null) return Unauthorized(ApiResponse.Fail("Not authenticated"));
+
+        var minPasswordLength = _config.GetValue("AppSettings:MinPasswordLength", 6);
+        if (string.IsNullOrEmpty(request.NewPassword) || request.NewPassword.Length < minPasswordLength)
+            return BadRequest(ApiResponse.Fail($"New password must be at least {minPasswordLength} characters"));
+
+        var user = await _db.Users.FindAsync(userId.Value);
+        if (user == null || string.IsNullOrEmpty(user.PasswordHash))
+            return Unauthorized(ApiResponse.Fail("Account not found or password not set"));
+
+        if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+            return BadRequest(ApiResponse.Fail("Current password is incorrect"));
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+        user.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        return Ok(ApiResponse<object>.Ok(new { message = "Password updated successfully" }));
     }
 
     /// <summary>

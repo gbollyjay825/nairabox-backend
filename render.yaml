@@ -1,0 +1,21 @@
+# Render.com Blueprint — one-click deploy
+# Push this file, then: New + → Web Service → connect repo → Render auto-detects.
+services:
+  - type: web
+    name: nairabox-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: Jwt__Issuer
+        value: nairabox
+      - key: Jwt__Audience
+        value: nairabox-web
+      - key: Jwt__Secret
+        generateValue: true # Render will generate a strong random value
+      - key: Cors__AllowedOrigins
+        value: https://nairabox-web.vercel.app

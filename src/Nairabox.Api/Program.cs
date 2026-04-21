@@ -12,21 +12,25 @@ using Nairabox.Infrastructure.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // ── DbContext ──
-if (builder.Environment.IsDevelopment())
+// Use MySQL if a ConnectionStrings:DefaultConnection is configured;
+// otherwise fall back to in-memory so the API can boot on a free PaaS tier
+// without provisioning a database. Switch to MySQL once one is attached.
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString))
 {
     builder.Services.AddDbContext<NairaboxDbContext>(options =>
-        options.UseInMemoryDatabase("NairaboxDev"));
+        options.UseInMemoryDatabase("NairaboxDb"));
 }
 else
 {
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
     builder.Services.AddDbContext<NairaboxDbContext>(options =>
-        options.UseMySql(connectionString!, ServerVersion.AutoDetect(connectionString!)));
+        options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 }
 
 // ── Authentication ──
-var jwtSecret = Environment.GetEnvironmentVariable("JWT__Secret")
-    ?? builder.Configuration["Jwt:Secret"];
+// Read via Configuration so both `Jwt__Secret` env var and `Jwt:Secret`
+// in appsettings work (case-insensitive on .NET config providers).
+var jwtSecret = builder.Configuration["Jwt:Secret"];
 if (string.IsNullOrEmpty(jwtSecret))
 {
     if (builder.Environment.IsDevelopment())
@@ -121,21 +125,27 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// ── Seed data (dev only) ──
-if (app.Environment.IsDevelopment())
+// ── Seed data ──
+// Always seed when running on the in-memory provider so a fresh deploy has
+// browsable content. Real-DB deployments should use migrations, not seed.
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<NairaboxDbContext>();
-    db.Database.EnsureCreated();
-    await SeedData.Initialize(db);
+    if (db.Database.IsInMemory())
+    {
+        db.Database.EnsureCreated();
+        await SeedData.Initialize(db);
+    }
 }
 
+// ── Health check ──
+app.MapGet("/health", () => Results.Ok(new { status = "ok", time = DateTime.UtcNow }));
+
 // ── Pipeline ──
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Swagger is enabled in all environments to make the live API self-documenting
+// for the frontend team; lock down with auth before going to real production.
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
