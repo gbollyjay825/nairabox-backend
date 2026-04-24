@@ -63,8 +63,17 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 // ── CORS ──
-var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-    ?? new[] { "http://localhost:4300" };
+// Accept either a string[] (appsettings.json) OR a comma-separated string
+// (Cors__AllowedOrigins env var on Render/Fly/Heroku — PaaS hosts pass
+// scalars only, so the array binding silently returns null).
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+if (allowedOrigins == null || allowedOrigins.Length == 0)
+{
+    var raw = builder.Configuration["Cors:AllowedOrigins"];
+    allowedOrigins = string.IsNullOrWhiteSpace(raw)
+        ? new[] { "http://localhost:4300" }
+        : raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+}
 
 builder.Services.AddCors(options =>
 {

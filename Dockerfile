@@ -24,8 +24,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# Render and most PaaS hosts inject PORT
-ENV ASPNETCORE_URLS=http://+:${PORT:-8080}
 ENV ASPNETCORE_ENVIRONMENT=Production
 EXPOSE 8080
 
@@ -33,4 +31,6 @@ EXPOSE 8080
 RUN useradd --uid 1000 --create-home --shell /bin/bash app && chown -R app:app /app
 USER app
 
-ENTRYPOINT ["dotnet", "Nairabox.Api.dll"]
+# Use shell-form so $PORT injected by Render/Fly/Heroku is actually expanded
+# at runtime. Defaults to 8080 if the host doesn't set one (Fly + local).
+ENTRYPOINT ["sh", "-c", "ASPNETCORE_URLS=http://+:${PORT:-8080} exec dotnet Nairabox.Api.dll"]
